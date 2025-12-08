@@ -1,4 +1,4 @@
-const bgMusic = document.getElementById("bgMusic");
+ const bgMusic = document.getElementById("bgMusic");
 
 // Coba autoplay saat load halaman (desktop)
 window.addEventListener("load", () => {
@@ -80,7 +80,7 @@ captureBtn.addEventListener("click", () => {
    const elementsToHide = document.querySelectorAll('.filter-buttons, .dropdown');
   elementsToHide.forEach(el => el.style.display = 'none');
 
-   // Lanjut proses capture
+  // Lanjut proses capture
   startCapture(() => {
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = video.videoWidth;
@@ -228,7 +228,3 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
-
-
-
-

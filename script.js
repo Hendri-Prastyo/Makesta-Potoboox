@@ -107,8 +107,12 @@ startCapture(() => {
   previewCanvas.width = tempCanvas.width;
   previewCanvas.height = tempCanvas.height;
   const previewCtx = previewCanvas.getContext("2d");
-  previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
 
+  previewCtx.save();
+  previewCtx.scale(-1, 1); // flip horizontal supaya preview normal
+  previewCtx.drawImage(tempCanvas, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+  previewCtx.restore();
+  
   cameraWrapper.style.display = "none";
   captureBtn.style.display = "none";
 
@@ -236,6 +240,7 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 
 
 

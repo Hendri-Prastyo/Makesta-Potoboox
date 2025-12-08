@@ -1,36 +1,48 @@
+// =======================
+// ELEMENTS
+// =======================
 const bgMusic = document.getElementById("bgMusic");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const previewCanvas = document.getElementById("previewCanvas");
+const previewContainer = document.getElementById("previewContainer");
+const captureBtn = document.getElementById("capture-btn");
+const retakeBtn = document.getElementById("retakeBtn");
+const nextBtn = document.getElementById("nextBtn");
+const cameraWrapper = document.getElementById("camera-wrapper");
+const countdownElement = document.getElementById("countdown");
+const flash = document.getElementById("flashOverlay");
+const shutterSound = document.getElementById("shutterSound");
+const filterSelect = document.getElementById("filterSelect");
 
-// Coba autoplay saat load halaman (desktop)
+let photos = [];
+let photosFilters = [];
+let lastCapturedImage = null;
+let step = 1;
+let countdownValue = 3;
+let countdownInterval;
+let currentFilter = "filter-none";
+
+// =======================
+// AUTOPLAY MUSIC
+// =======================
 window.addEventListener("load", () => {
   bgMusic.play().catch(() => {
     console.log("Autoplay diblok, perlu klik user");
   });
 });
 
-// Kamera
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const photos = [];
-const photosFilters = [];
-let step = 1;
-const captureBtn = document.getElementById("capture-btn");
-const cameraWrapper = document.getElementById("camera-wrapper");
-
+// =======================
+// CAMERA
+// =======================
 navigator.mediaDevices.getUserMedia({ video: { facingMode:"user" } })
-  .then(stream => video.srcObject = stream);
+  .then(stream => video.srcObject = stream)
+  .catch(err => console.error("Gagal akses kamera:", err));
 
-const previewContainer = document.getElementById("previewContainer");
-const previewCanvas = document.getElementById("previewCanvas");
-const retakeBtn = document.getElementById("retakeBtn");
-const nextBtn = document.getElementById("nextBtn");
-let lastCapturedImage = null;
-
-// Countdown
-let countdownValue = 3, countdownInterval;
-const countdownElement = document.getElementById("countdown");
-countdownElement.style.display = "none";
-
+// =======================
+// COUNTDOWN & CAPTURE
+// =======================
 function startCountdown(callback) {
   countdownValue = 3;
   countdownElement.textContent = countdownValue;
@@ -38,201 +50,177 @@ function startCountdown(callback) {
 
   countdownInterval = setInterval(() => {
     countdownValue--;
-    if(countdownValue>0) countdownElement.textContent = countdownValue;
-    else { clearInterval(countdownInterval); countdownElement.style.display="none"; callback(); }
-  },1000);
+    if(countdownValue > 0) {
+      countdownElement.textContent = countdownValue;
+    } else {
+      clearInterval(countdownInterval);
+      countdownElement.style.display = "none";
+      callback();
+    }
+  }, 1000);
 }
 
-// Flash & shutter
-const flash = document.getElementById("flashOverlay");
-const shutterSound = document.getElementById("shutterSound");
-
 function startCapture(callback){
-  startCountdown(()=>{
-    flash.style.opacity=1;
-    setTimeout(()=>flash.style.opacity=0,180);
-    shutterSound.currentTime=0;
+  startCountdown(() => {
+    flash.style.opacity = 1;
+    setTimeout(() => flash.style.opacity = 0, 180);
+    shutterSound.currentTime = 0;
     shutterSound.play();
-    setTimeout(()=>callback(),200);
+    setTimeout(() => callback(), 200);
   });
 }
 
-// Filter dropdown
-const filterSelect = document.getElementById("filterSelect");
-let currentFilter = "filter-none";
-
+// =======================
+// FILTER
+// =======================
 filterSelect.addEventListener("change", () => {
   currentFilter = filterSelect.value;
   video.className = currentFilter;
   previewCanvas.className = currentFilter;
 });
 
-
-// Capture foto
+// =======================
+// CAPTURE FOTO
+// =======================
 captureBtn.addEventListener("click", () => {
-  // Play music jika belum play
-  if(bgMusic.paused){
-    bgMusic.play().catch(() => {
-      console.log("Klik user diperlukan untuk play music");
-    });
-  }
+  if(bgMusic.paused) bgMusic.play().catch(() => console.log("Klik user diperlukan untuk play music"));
 
-   const elementsToHide = document.querySelectorAll('.filter-buttons, .dropdown');
-  elementsToHide.forEach(el => el.style.display = 'none');
+  // sembunyikan tombol sementara
+  document.querySelectorAll('.filter-buttons, .dropdown').forEach(el => el.style.display='none');
 
-  // --- Lanjut proses capture ---
-startCapture(() => {
-  // --- Final capture ---
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = video.videoWidth;
-  tempCanvas.height = video.videoHeight;
-  const tempCtx = tempCanvas.getContext("2d");
+  startCapture(() => {
+    // canvas temporary untuk capture
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tempCtx = tempCanvas.getContext("2d");
 
-  // Flip video saat capture untuk hasil final normal
-  tempCtx.save();
-  tempCtx.scale(-1, 1);
-  tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-  tempCtx.restore();
+    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
 
-  // Jika overlay aktif, flip overlay sama seperti tempCanvas
-  if(faceTrackingActive){
-    tempCtx.save();
-    tempCtx.scale(-1, 1);
-    tempCtx.drawImage(overlay, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.restore();
-  }
+    lastCapturedImage = tempCanvas;
 
-  lastCapturedImage = tempCanvas;
+    // Preview
+    previewCanvas.width = tempCanvas.width;
+    previewCanvas.height = tempCanvas.height;
+    const previewCtx = previewCanvas.getContext("2d");
+    previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
 
-  // --- Preview --- 
-  previewCanvas.width = video.videoWidth;
-  previewCanvas.height = video.videoHeight;
-  const previewCtx = previewCanvas.getContext("2d");
+    cameraWrapper.style.display = "none";
+    captureBtn.style.display = "none";
+    document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='none');
+    previewContainer.style.display = "block";
 
-  previewCtx.save();
-  previewCtx.scale(-1, 1); // flip horizontal supaya preview sesuai kamera
-  previewCtx.drawImage(video, -video.videoWidth, 0, video.videoWidth, video.videoHeight);
-  if(faceTrackingActive){
-    previewCtx.drawImage(overlay, 0, 0, overlay.width, overlay.height); // overlay ikut tampil di preview
-  }
-  previewCtx.restore();
-
-  cameraWrapper.style.display = "none";
-  captureBtn.style.display = "none";
-
-  const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
-  elementsToHide.forEach(el => el.style.display = 'none');
-
-  previewContainer.style.display = "block";
-  photos.push(lastCapturedImage);
-  photosFilters.push(currentFilter);
+    photos.push(lastCapturedImage);
+    photosFilters.push(currentFilter);
+  });
 });
 
-
-
+// =======================
+// RETAKE
+// =======================
 retakeBtn.onclick = () => {
-  previewContainer.style.display="none";
-  cameraWrapper.style.display="block";
-  captureBtn.style.display="block";
+  previewContainer.style.display = "none";
+  cameraWrapper.style.display = "block";
+  captureBtn.style.display = "block";
 
-  // Hapus foto terakhir jika retake
-  const elementsToShow = document.querySelectorAll('#filterSelect, .dropdown');
-  elementsToShow.forEach(el => el.style.display = '');
+  document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='');
 
   photos.pop();
   photosFilters.pop();
 };
 
+// =======================
+// NEXT STEP
+// =======================
 nextBtn.onclick = () => {
   photos.push(lastCapturedImage);
-  previewContainer.style.display="none";
+  previewContainer.style.display = "none";
 
-  if(step<3){
+  if(step < 3){
     step++;
-    captureBtn.textContent="Ambil Foto";
-    captureBtn.style.display="block";
-    cameraWrapper.style.display="block";
+    captureBtn.textContent = "Ambil Foto";
+    captureBtn.style.display = "block";
+    cameraWrapper.style.display = "block";
 
-    const elementsToShow = document.querySelectorAll('#filterSelect, .dropdown');
-    elementsToShow.forEach(el => el.style.display = '');
+    document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='');
   } else {
     generateFinal();
   }
 };
 
-// Generate final
+// =======================
+// GENERATE FINAL
+// =======================
 function generateFinal(){
-  const elementsToHide = document.querySelectorAll('.title, .title-bawah, .subtitle, #filterSelect, .dropdown');
-  elementsToHide.forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.title, .title-bawah, .subtitle, #filterSelect, .dropdown')
+    .forEach(el => el.style.display='none');
 
-  canvas.width=1080;
-  canvas.height=1920;
+  canvas.width = 1080;
+  canvas.height = 1920;
 
-  const frameW=768;
-  const frameH=479;
-  const posX=(canvas.width-frameW)/2;
-  const positionsY=[130,705,1300];
+  const frameW = 768;
+  const frameH = 479;
+  const posX = (canvas.width - frameW)/2;
+  const positionsY = [130, 705, 1300];
 
-const extraWidth = 40;
-const extraHeight = 35;
-const offsetX = 10; // geser foto sedikit ke kiri
+  const extraWidth = 40;
+  const extraHeight = 35;
+  const offsetX = 10;
 
-photos.forEach((photo, index) => {
-  const photoRatio = photo.width / photo.height;
-  const frameRatio = frameW / frameH;
+  photos.forEach((photo, index) => {
+    const photoRatio = photo.width / photo.height;
+    const frameRatio = frameW / frameH;
 
-  let sWidth, sHeight, sx, sy;
+    let sWidth, sHeight, sx, sy;
 
-  if(photoRatio > frameRatio){
-    sHeight = photo.height;
-    sWidth = sHeight * frameRatio;
-    sx = (photo.width - sWidth)/2;
-    sy = 0;
-  } else {
-    sWidth = photo.width;
-    sHeight = sWidth / frameRatio;
-    sx = 0;
-    sy = (photo.height - sHeight)/2;
-  }
+    if(photoRatio > frameRatio){
+      sHeight = photo.height;
+      sWidth = sHeight * frameRatio;
+      sx = (photo.width - sWidth)/2;
+      sy = 0;
+    } else {
+      sWidth = photo.width;
+      sHeight = sWidth / frameRatio;
+      sx = 0;
+      sy = (photo.height - sHeight)/2;
+    }
 
-  const targetW = frameW + extraWidth;
-  const targetH = frameH + extraHeight;
-  const targetX = posX - (targetW - frameW)/2 - offsetX; // geser ke kiri
-  const targetY = positionsY[index] - (targetH - frameH)/2;
+    const targetW = frameW + extraWidth;
+    const targetH = frameH + extraHeight;
+    const targetX = posX - (targetW - frameW)/2 - offsetX;
+    const targetY = positionsY[index] - (targetH - frameH)/2;
 
-  // Terapkan filter masing-masing foto
     ctx.filter = getCSSFilter(photosFilters[index]);
     ctx.drawImage(photo, sx, sy, sWidth, sHeight, targetX, targetY, targetW, targetH);
-    ctx.filter = "none"; // reset supaya frame tidak ikut
-});
-
-
-
-
-
+    ctx.filter = "none";
+  });
 
   // Frame overlay
-  const frame=new Image();
-  frame.src="frame.png";
-  frame.onload=()=>{
-    ctx.drawImage(frame,0,0,canvas.width,canvas.height);
-    document.getElementById("result").src=canvas.toDataURL("image/png");
-    document.getElementById("result-area").style.display="block";
+  const frame = new Image();
+  frame.src = "frame.png";
+  frame.onload = () => {
+    ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+    document.getElementById("result").src = canvas.toDataURL("image/png");
+    document.getElementById("result-area").style.display = "block";
     document.getElementById("result-area").classList.add("show");
   };
 
-  cameraWrapper.style.display="none";
+  cameraWrapper.style.display = "none";
 }
 
-// Download
-document.getElementById("download-btn").onclick=()=>{
-  const link=document.createElement("a");
-  link.download="Potobox-Strip.png";
-  link.href=canvas.toDataURL("image/png");
+// =======================
+// DOWNLOAD
+// =======================
+document.getElementById("download-btn").onclick = () => {
+  const link = document.createElement("a");
+  link.download = "Potobox-Strip.png";
+  link.href = canvas.toDataURL("image/png");
   link.click();
 };
 
-// Helper: map class ke filter string CSS
+// =======================
+// HELPER FILTER
+// =======================
 function getCSSFilter(className){
   switch(className){
     case "filter-sepia": return "sepia(60%)";
@@ -244,4 +232,3 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
-

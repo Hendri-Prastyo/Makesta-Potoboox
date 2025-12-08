@@ -102,8 +102,7 @@ captureBtn.addEventListener("click", () => {
     // Preview
     previewCanvas.width = tempCanvas.width;
     previewCanvas.height = tempCanvas.height;
-    const previewCtx = previewCanvas.getContext("2d");
-    previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+    previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
 
     cameraWrapper.style.display = "none";
     captureBtn.style.display = "none";
@@ -232,3 +231,4 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+

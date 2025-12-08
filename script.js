@@ -88,31 +88,39 @@ captureBtn.addEventListener("click", () => {
   // sembunyikan tombol sementara
   document.querySelectorAll('.filter-buttons, .dropdown').forEach(el => el.style.display='none');
 
+  // Lanjut proses capture
   startCapture(() => {
-    // canvas temporary untuk capture
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
+    
     const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.save();
+    tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
+    tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.restore();
 
-    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
 
     lastCapturedImage = tempCanvas;
 
-    // Preview
     previewCanvas.width = tempCanvas.width;
     previewCanvas.height = tempCanvas.height;
     previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
 
     cameraWrapper.style.display = "none";
     captureBtn.style.display = "none";
-    document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='none');
-    previewContainer.style.display = "block";
 
+     // Hide elemen lain (judul, subtitle, dropdown filter)
+    const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
+    elementsToHide.forEach(el => el.style.display = 'none');
+
+    previewContainer.style.display = "block";
+    // Simpan foto dan filter
     photos.push(lastCapturedImage);
     photosFilters.push(currentFilter);
   });
 });
+
 
 // =======================
 // RETAKE
@@ -231,4 +239,5 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 

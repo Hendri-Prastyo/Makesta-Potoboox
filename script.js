@@ -82,11 +82,17 @@ filterSelect.addEventListener("change", () => {
 // =======================
 // CAPTURE FOTO
 // =======================
+// Capture foto
 captureBtn.addEventListener("click", () => {
-  if(bgMusic.paused) bgMusic.play().catch(() => console.log("Klik user diperlukan untuk play music"));
+  // Play music jika belum play
+  if(bgMusic.paused){
+    bgMusic.play().catch(() => {
+      console.log("Klik user diperlukan untuk play music");
+    });
+  }
 
-  // sembunyikan tombol sementara
-  document.querySelectorAll('.filter-buttons, .dropdown').forEach(el => el.style.display='none');
+   const elementsToHide = document.querySelectorAll('.filter-buttons, .dropdown');
+  elementsToHide.forEach(el => el.style.display = 'none');
 
   // Lanjut proses capture
   startCapture(() => {
@@ -95,10 +101,10 @@ captureBtn.addEventListener("click", () => {
     tempCanvas.height = video.videoHeight;
     
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.save();
-    tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
-    tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.restore();
+tempCtx.save();
+tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
+tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+tempCtx.restore();
 
 
     lastCapturedImage = tempCanvas;
@@ -122,34 +128,31 @@ captureBtn.addEventListener("click", () => {
 });
 
 
-// =======================
-// RETAKE
-// =======================
 retakeBtn.onclick = () => {
-  previewContainer.style.display = "none";
-  cameraWrapper.style.display = "block";
-  captureBtn.style.display = "block";
+  previewContainer.style.display="none";
+  cameraWrapper.style.display="block";
+  captureBtn.style.display="block";
 
-  document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='');
+  // Hapus foto terakhir jika retake
+  const elementsToShow = document.querySelectorAll('#filterSelect, .dropdown');
+  elementsToShow.forEach(el => el.style.display = '');
 
   photos.pop();
   photosFilters.pop();
 };
 
-// =======================
-// NEXT STEP
-// =======================
 nextBtn.onclick = () => {
   photos.push(lastCapturedImage);
-  previewContainer.style.display = "none";
+  previewContainer.style.display="none";
 
-  if(step < 3){
+  if(step<3){
     step++;
-    captureBtn.textContent = "Ambil Foto";
-    captureBtn.style.display = "block";
-    cameraWrapper.style.display = "block";
+    captureBtn.textContent="Ambil Foto";
+    captureBtn.style.display="block";
+    cameraWrapper.style.display="block";
 
-    document.querySelectorAll('#filterSelect, .dropdown').forEach(el => el.style.display='');
+    const elementsToShow = document.querySelectorAll('#filterSelect, .dropdown');
+    elementsToShow.forEach(el => el.style.display = '');
   } else {
     generateFinal();
   }
@@ -239,5 +242,6 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 
 

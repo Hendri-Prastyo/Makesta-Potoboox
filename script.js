@@ -97,7 +97,12 @@ tempCtx.restore();
 
     previewCanvas.width = tempCanvas.width;
     previewCanvas.height = tempCanvas.height;
-    previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
+    const pctx = previewCanvas.getContext("2d");
+    pctx.save();
+    pctx.scale(-1, 1);
+    pctx.drawImage(tempCanvas, -previewCanvas.width, 0);
+    pctx.restore();
+
 
     cameraWrapper.style.display = "none";
     captureBtn.style.display = "none";
@@ -228,5 +233,6 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 
 

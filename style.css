@@ -47,7 +47,6 @@ body {
 video {
   width: 100%;         /* full wrapper */
   height: 100%;        /* full wrapper */
-  top: 40px;
   object-fit: cover;    /* mengisi container */
   transform: scaleX(-1); /* mirror */
   transform-origin: center center;
@@ -307,6 +306,7 @@ video {
 
   #camera-wrapper, #previewCanvas {
     aspect-ratio: 768 / 479;
+    height: auto;
   }
 
   #lyrics {
@@ -345,6 +345,7 @@ body {
 
   #camera-wrapper, #previewCanvas {
     aspect-ratio: 768 / 479;
+    height: auto;
   }
 
   #filterSelect {
@@ -357,5 +358,6 @@ body {
     justify-content: center;
   }
 }
+
 
 

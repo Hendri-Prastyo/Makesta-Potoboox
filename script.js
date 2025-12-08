@@ -81,43 +81,33 @@ captureBtn.addEventListener("click", () => {
   elementsToHide.forEach(el => el.style.display = 'none');
 
   // Lanjut proses capture
-  startCapture(() => {
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = video.videoWidth;
-    tempCanvas.height = video.videoHeight;
-    
-    const tempCtx = tempCanvas.getContext("2d");
-tempCtx.save();
-tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
-tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.restore();
+startCapture(() => {
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
+  
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCtx.save();
+  tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
+  tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.restore();
 
+  lastCapturedImage = tempCanvas;
 
-    lastCapturedImage = tempCanvas;
+  previewCanvas.width = tempCanvas.width;
+  previewCanvas.height = tempCanvas.height;
+  const previewCtx = previewCanvas.getContext("2d");
+  previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height); // **tanpa flip**
 
-    previewCanvas.width = tempCanvas.width;
-    previewCanvas.height = tempCanvas.height;
-    previewCanvas.width = tempCanvas.width;
-    previewCanvas.height = tempCanvas.height;
-    const previewCtx = previewCanvas.getContext("2d");
-    
-    previewCtx.save();
-    previewCtx.scale(-1, 1); // flip horizontal supaya sesuai kamera
-    previewCtx.drawImage(tempCanvas, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-    previewCtx.restore();
+  cameraWrapper.style.display = "none";
+  captureBtn.style.display = "none";
 
-    cameraWrapper.style.display = "none";
-    captureBtn.style.display = "none";
+  const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
+  elementsToHide.forEach(el => el.style.display = 'none');
 
-     // Hide elemen lain (judul, subtitle, dropdown filter)
-    const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
-    elementsToHide.forEach(el => el.style.display = 'none');
-
-    previewContainer.style.display = "block";
-    // Simpan foto dan filter
-    photos.push(lastCapturedImage);
-    photosFilters.push(currentFilter);
-  });
+  previewContainer.style.display = "block";
+  photos.push(lastCapturedImage);
+  photosFilters.push(currentFilter);
 });
 
 
@@ -235,4 +225,5 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 

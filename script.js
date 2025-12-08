@@ -80,38 +80,54 @@ captureBtn.addEventListener("click", () => {
    const elementsToHide = document.querySelectorAll('.filter-buttons, .dropdown');
   elementsToHide.forEach(el => el.style.display = 'none');
 
-  // Lanjut proses capture
-  startCapture(() => {
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = video.videoWidth;
-    tempCanvas.height = video.videoHeight;
-    
-    const tempCtx = tempCanvas.getContext("2d");
-tempCtx.save();
-tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
-tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.restore();
+  // --- Lanjut proses capture ---
+startCapture(() => {
+  // --- Final capture ---
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
+  const tempCtx = tempCanvas.getContext("2d");
 
+  // Flip video saat capture untuk hasil final normal
+  tempCtx.save();
+  tempCtx.scale(-1, 1);
+  tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.restore();
 
-    lastCapturedImage = tempCanvas;
+  // Jika overlay aktif, flip overlay sama seperti tempCanvas
+  if(faceTrackingActive){
+    tempCtx.save();
+    tempCtx.scale(-1, 1);
+    tempCtx.drawImage(overlay, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.restore();
+  }
 
-    previewCanvas.width = tempCanvas.width;
-    previewCanvas.height = tempCanvas.height;
-    previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
+  lastCapturedImage = tempCanvas;
 
-    cameraWrapper.style.display = "none";
-    captureBtn.style.display = "none";
+  // --- Preview --- 
+  previewCanvas.width = video.videoWidth;
+  previewCanvas.height = video.videoHeight;
+  const previewCtx = previewCanvas.getContext("2d");
 
-     // Hide elemen lain (judul, subtitle, dropdown filter)
-    const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
-    elementsToHide.forEach(el => el.style.display = 'none');
+  previewCtx.save();
+  previewCtx.scale(-1, 1); // flip horizontal supaya preview sesuai kamera
+  previewCtx.drawImage(video, -video.videoWidth, 0, video.videoWidth, video.videoHeight);
+  if(faceTrackingActive){
+    previewCtx.drawImage(overlay, 0, 0, overlay.width, overlay.height); // overlay ikut tampil di preview
+  }
+  previewCtx.restore();
 
-    previewContainer.style.display = "block";
-    // Simpan foto dan filter
-    photos.push(lastCapturedImage);
-    photosFilters.push(currentFilter);
-  });
+  cameraWrapper.style.display = "none";
+  captureBtn.style.display = "none";
+
+  const elementsToHide = document.querySelectorAll('#filterSelect, .dropdown');
+  elementsToHide.forEach(el => el.style.display = 'none');
+
+  previewContainer.style.display = "block";
+  photos.push(lastCapturedImage);
+  photosFilters.push(currentFilter);
 });
+
 
 
 retakeBtn.onclick = () => {
@@ -228,3 +244,4 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+

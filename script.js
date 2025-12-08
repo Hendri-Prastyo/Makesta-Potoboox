@@ -97,11 +97,7 @@ tempCtx.restore();
 
     previewCanvas.width = tempCanvas.width;
     previewCanvas.height = tempCanvas.height;
-    const pctx = previewCanvas.getContext("2d");
-    pctx.save();
-    pctx.scale(-1, 1);
-    pctx.drawImage(tempCanvas, -previewCanvas.width, 0);
-    pctx.restore();
+    previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
 
 
     cameraWrapper.style.display = "none";

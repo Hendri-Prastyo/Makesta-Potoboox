@@ -80,7 +80,7 @@ captureBtn.addEventListener("click", () => {
    const elementsToHide = document.querySelectorAll('.filter-buttons, .dropdown');
   elementsToHide.forEach(el => el.style.display = 'none');
 
-  // Lanjut proses capture
+   // Lanjut proses capture
   startCapture(() => {
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = video.videoWidth;
@@ -89,7 +89,7 @@ captureBtn.addEventListener("click", () => {
     const tempCtx = tempCanvas.getContext("2d");
 tempCtx.save();
 tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
-tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
 tempCtx.restore();
 
 
@@ -98,7 +98,6 @@ tempCtx.restore();
     previewCanvas.width = tempCanvas.width;
     previewCanvas.height = tempCanvas.height;
     previewCanvas.getContext("2d").drawImage(tempCanvas, 0, 0);
-
 
     cameraWrapper.style.display = "none";
     captureBtn.style.display = "none";
@@ -229,6 +228,7 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 
 
 

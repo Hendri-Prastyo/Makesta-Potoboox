@@ -85,19 +85,29 @@ startCapture(() => {
   const tempCanvas = document.createElement("canvas");
   tempCanvas.width = video.videoWidth;
   tempCanvas.height = video.videoHeight;
-  
   const tempCtx = tempCanvas.getContext("2d");
+
+  // Flip video saat capture untuk hasil normal
   tempCtx.save();
-  tempCtx.scale(-1, 1); // flip horizontal supaya hasil foto normal
+  tempCtx.scale(-1, 1);
   tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
   tempCtx.restore();
 
+  // Jika overlay aktif, flip overlay sama seperti tempCanvas
+  if(faceTrackingActive){
+    tempCtx.save();
+    tempCtx.scale(-1, 1);
+    tempCtx.drawImage(overlay, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.restore();
+  }
+
   lastCapturedImage = tempCanvas;
 
+  // Preview langsung draw tanpa flip lagi
   previewCanvas.width = tempCanvas.width;
   previewCanvas.height = tempCanvas.height;
   const previewCtx = previewCanvas.getContext("2d");
-  previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height); // **tanpa flip**
+  previewCtx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
 
   cameraWrapper.style.display = "none";
   captureBtn.style.display = "none";
@@ -109,6 +119,7 @@ startCapture(() => {
   photos.push(lastCapturedImage);
   photosFilters.push(currentFilter);
 });
+
 
 
 retakeBtn.onclick = () => {
@@ -225,5 +236,6 @@ function getCSSFilter(className){
     default: return "none";
   }
 }
+
 
 
